@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Reconecte — Diagnóstico de Conexão do Casamento</title>
+<link rel="icon" type="image/png" href="favicon-coracao.png">
+<link rel="apple-touch-icon" href="favicon-coracao.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6F0;
+    --card:#FFFFFF;
+    --ink:#2E2A26;
+    --muted:#8A7F73;
+    --primary:#B5613B;
+    --primary-dark:#8F4A2B;
+    --accent:#5B7B6B;
+    --gold:#D8A24A;
+    --locked:#E4DCD2;
+    --bad:#C0594A;
+    --radius:22px;
+    --shadow-soft:0 10px 28px -10px rgba(143,74,43,.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:"Lora",Georgia,"Times New Roman",serif;margin:0;}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+
+  /* progress header */
+  .topbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:16px 20px 10px;}
+  .topbar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .back-btn{border:none;background:none;color:var(--muted);font-size:22px;cursor:pointer;padding:2px 6px;line-height:1;visibility:hidden;}
+  .back-btn.show{visibility:visible;}
+  .progress-track{flex:1;height:9px;background:var(--locked);border-radius:8px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--gold));border-radius:8px;transition:width .45s cubic-bezier(.4,0,.2,1);}
+  .brand-mark{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:var(--primary-dark);font-size:14.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.75;}
+
+  /* main screen area */
+  .screen-wrap{flex:1;display:flex;flex-direction:column;padding:8px 24px 28px;}
+  .screen{display:flex;flex-direction:column;flex:1;animation:fadeUp .35s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .kicker{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;background:#F4E9DC;color:var(--primary-dark);font-weight:800;font-size:13.5px;letter-spacing:.03em;text-transform:uppercase;border-radius:20px;padding:6px 12px;margin-bottom:16px;}
+  .q-title{font-size:26px;line-height:1.32;color:var(--primary-dark);margin-bottom:6px;}
+  .q-sub{color:var(--muted);font-size:16.5px;line-height:1.55;margin-bottom:22px;}
+
+  .options{display:flex;flex-direction:column;gap:11px;margin-top:4px;}
+  .option{
+    display:flex;align-items:center;gap:13px;text-align:left;
+    background:var(--card);border:1.6px solid #EFE6DC;border-radius:16px;
+    padding:15px 16px;font-size:17.5px;font-weight:700;color:var(--ink);
+    cursor:pointer;transition:all .15s ease;
+  }
+  .option:hover{border-color:var(--primary);transform:translateY(-1px);}
+  .option.selected{border-color:var(--primary);background:#FBF1E9;box-shadow:var(--shadow-soft);}
+  .opt-emoji{font-size:23px;flex-shrink:0;}
+
+  .text-input-wrap{margin-top:6px;}
+  .text-input-wrap input{
+    width:100%;border:1.6px solid #EFE6DC;border-radius:16px;padding:15px 16px;
+    font-size:17.5px;font-family:inherit;color:var(--ink);background:var(--card);
+  }
+  .text-input-wrap input:focus{outline:none;border-color:var(--primary);}
+
+  .cta-btn{
+    width:100%;border:none;border-radius:16px;padding:17px;font-size:18px;font-weight:800;
+    color:#fff;background:var(--primary);cursor:pointer;margin-top:auto;
+    box-shadow:0 10px 22px -8px rgba(181,97,59,.55);transition:transform .12s ease, opacity .2s ease;
+  }
+  .cta-btn:active{transform:scale(.98);}
+  .cta-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+  .cta-btn.secondary{background:transparent;color:var(--primary-dark);box-shadow:none;border:1.6px solid var(--primary);}
+  .micro-trust{text-align:center;color:var(--muted);font-size:14px;margin-top:12px;}
+
+  /* intro */
+  .intro-emoji{font-size:46px;margin-bottom:14px;}
+  .intro-art{width:100%;border-radius:18px;margin-bottom:20px;height:200px;overflow:hidden;box-shadow:var(--shadow-soft);}
+  .intro-art img{width:100%;height:100%;object-fit:cover;display:block;}
+  .intro-list{display:flex;flex-direction:column;gap:10px;margin:18px 0 26px;}
+  .intro-list-item{display:flex;align-items:center;gap:10px;font-size:16px;color:var(--ink);font-weight:700;}
+  .intro-list-item .chk{color:var(--accent);font-size:18.5px;}
+
+  /* interstitial / proof */
+  .proof-card{background:var(--card);border:1.5px solid #F0E8DD;border-radius:18px;padding:20px 18px;margin-bottom:18px;box-shadow:var(--shadow-soft);}
+  .proof-stat{font-size:32px;font-weight:900;color:var(--primary-dark);font-family:"Lora",serif;}
+  .proof-text{font-size:16.5px;color:var(--ink);line-height:1.55;margin-top:6px;}
+  .verse-card{background:#F4E9DC;border-left:4px solid var(--gold);border-radius:14px;padding:16px 16px;margin-top:14px;}
+  .verse-text{font-family:"Lora",serif;font-style:italic;font-size:17px;color:var(--primary-dark);line-height:1.5;}
+  .verse-ref{font-size:14px;color:var(--muted);font-weight:800;margin-top:8px;}
+
+  /* loading */
+  .loading-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .loading-ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--primary) var(--p,0%),var(--locked) 0);display:flex;align-items:center;justify-content:center;margin-bottom:22px;transition:background .25s linear;}
+  .loading-ring-inner{width:96px;height:96px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:var(--primary-dark);font-family:"Lora",serif;}
+  .loading-status{font-size:16px;color:var(--muted);font-weight:700;min-height:20px;}
+
+  /* result */
+  .result-badge{align-self:center;background:#EAF2EE;color:var(--accent);font-weight:800;font-size:14.5px;border-radius:20px;padding:7px 16px;margin-bottom:14px;}
+  .chart-card{background:var(--card);border:1px solid #F0E8DD;border-radius:18px;padding:18px 16px;margin:6px 0 18px;box-shadow:var(--shadow-soft);}
+  .chart-row{margin-bottom:14px;}
+  .chart-row:last-child{margin-bottom:0;}
+  .chart-label{display:flex;justify-content:space-between;font-size:14.5px;font-weight:800;color:var(--ink);margin-bottom:6px;}
+  .chart-bars{display:flex;gap:6px;align-items:center;}
+  .bar-track{flex:1;height:12px;border-radius:8px;background:var(--locked);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:8px;width:0%;transition:width 1s cubic-bezier(.3,.8,.4,1);}
+  .bar-fill.now{background:#D9B7A8;}
+  .bar-fill.future{background:linear-gradient(90deg,var(--accent),#7FA08F);}
+  .chart-legend{display:flex;gap:16px;font-size:13.5px;color:var(--muted);font-weight:700;margin-top:10px;}
+  .legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;}
+
+  /* offer page */
+  .offer-hero{padding-top:6px;}
+  .offer-hero h1{font-size:27px;color:var(--primary-dark);line-height:1.3;margin-bottom:10px;}
+  .offer-hero p{color:var(--muted);font-size:16.5px;line-height:1.55;}
+  .compare-list{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+  .compare-item{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.5;}
+  .compare-item.before .ico{color:var(--bad);}
+  .compare-item.after .ico{color:var(--accent);}
+  .ico{font-size:18px;flex-shrink:0;margin-top:1px;}
+  .section-title{font-size:20px;color:var(--primary-dark);margin:26px 0 12px;}
+  .product-card{background:var(--card);border:1.5px solid #F0E8DD;border-radius:18px;padding:18px;box-shadow:var(--shadow-soft);margin-bottom:14px;}
+  .product-card h3{font-size:18px;color:var(--ink);margin-bottom:4px;}
+  .product-card p{font-size:15.5px;color:var(--muted);margin:0;line-height:1.5;}
+  .bonus-tag{display:inline-block;background:var(--gold);color:#fff;font-size:12px;font-weight:800;border-radius:8px;padding:3px 9px;margin-bottom:8px;}
+  .price-card{text-align:center;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:20px;padding:26px 20px;color:#fff;margin:22px 0 16px;box-shadow:var(--shadow-soft);}
+  .price-compare{font-size:15px;opacity:.9;margin-bottom:6px;}
+  .price-now{font-size:40px;font-weight:900;font-family:"Lora",serif;}
+  .price-sub{font-size:14px;opacity:.85;margin-top:4px;}
+  .guarantee-row{display:flex;align-items:center;gap:10px;background:#EAF2EE;border-radius:14px;padding:13px 14px;font-size:15px;font-weight:700;color:var(--primary-dark);margin-bottom:18px;}
+  .guarantee-row .ico{color:var(--accent);font-size:21px;}
+  .testi-card{background:var(--card);border:1px solid #F0E8DD;border-radius:16px;padding:14px 15px;margin-bottom:10px;}
+  .testi-text{font-size:15.5px;line-height:1.55;color:var(--ink);font-style:italic;}
+  .testi-name{font-size:13.5px;color:var(--muted);font-weight:800;margin-top:6px;}
+  .faq-item{border-bottom:1px solid #EFE6DC;padding:13px 0;}
+  .faq-q{font-weight:800;font-size:16px;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+  .faq-a{font-size:15.5px;color:var(--muted);line-height:1.55;margin-top:8px;display:none;}
+  .faq-item.open .faq-a{display:block;}
+  .faq-item.open .faq-arrow{transform:rotate(180deg);}
+  .faq-arrow{transition:transform .2s ease;color:var(--muted);}
+  .about-box{background:#F4E9DC;border-radius:16px;padding:16px;font-size:15.5px;color:var(--ink);line-height:1.6;margin:16px 0 4px;}
+  .sticky-cta{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(251,246,240,0) 0%,var(--bg) 30%);padding:18px 0 8px;margin-top:18px;}
+  .footer-note{text-align:center;color:var(--muted);font-size:13px;margin-top:18px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* ============================================================
+   RECONECTE — Quiz de Vendas
+   Estrutura: abertura → demografia → prova → diagnóstico →
+   ferida → desejo → prova/evidência → micro-compromisso →
+   carregamento (+ pergunta de nome) → resultado → oferta
+   ============================================================ */
+
+const state = {
+  step: 0,
+  answers: {},
+  name: ""
+};
+
+function scoreLevel(){
+  // soma sinais de distanciamento nas respostas de diagnóstico (Q1..Q4) e ferida (Q5)
+  const distant = ["q_conversas_2","q_conversas_3","q_tempo_3","q_tempo_4",
+                   "q_conflito_2","q_conflito_3","q_conflito_4","q_oracao_3","q_oracao_4",
+                   "q_futuro_1","q_futuro_2"];
+  let hits = 0;
+  Object.values(state.answers).forEach(v=>{ if(distant.includes(v)) hits++; });
+  if(hits >= 6) return {tag:"Conexão em Pausa", desc:"sinais claros de distanciamento silencioso — e um caminho simples para retomar."};
+  if(hits >= 3) return {tag:"Conexão em Construção", desc:"vocês ainda têm uma boa base, mas a rotina está tomando espaço da intimidade."};
+  return {tag:"Conexão com Potencial", desc:"a base do casamento é sólida — falta só intencionalidade diária para destravar o próximo nível."};
+}
+
+const SCREENS = [
+  { type:"intro", id:"intro" },
+  { type:"question", id:"q_estado_civil", title:"Qual dessas opções descreve você hoje?",
+    sub:"Isso nos ajuda a personalizar seu diagnóstico.",
+    options:[
+      {emoji:"👰", text:"Sou casada", value:"casada"},
+      {emoji:"💍", text:"Estou noiva, me preparando pro casamento", value:"noiva"},
+      {emoji:"❤️", text:"Namoro sério, pensando em formalizar", value:"namoro"},
+      {emoji:"🤍", text:"Quero fortalecer um relacionamento importante", value:"outro"}
+    ]},
+  { type:"question", id:"q_idade", title:"Qual é a sua faixa de idade?",
+    options:[
+      {emoji:"🌱", text:"Até 27 anos", value:"18-27"},
+      {emoji:"🌿", text:"28 a 35 anos", value:"28-35"},
+      {emoji:"🌳", text:"36 a 45 anos", value:"36-45"},
+      {emoji:"🍃", text:"Acima de 45 anos", value:"45+"}
+    ]},
+  { type:"proof", id:"proof1",
+    stat:"7 em cada 10", text:"casais cristãos relatam que a rotina tomou o lugar das conversas profundas nos últimos anos. A boa notícia: pequenos hábitos diários, vividos com fé e intencionalidade, conseguem reverter esse padrão — sem terapia cara e sem grandes mudanças na rotina." },
+  { type:"question", id:"q_conversas", title:"Como estão as conversas profundas entre você e seu cônjuge hoje?",
+    options:[
+      {emoji:"😊", text:"Conversamos bastante, mas sinto que falta algo", value:"q_conversas_1"},
+      {emoji:"😐", text:"Falamos mais de logística do dia a dia do que de nós", value:"q_conversas_2"},
+      {emoji:"😔", text:"Sinto que estamos cada vez mais distantes nas conversas", value:"q_conversas_3"},
+      {emoji:"🤔", text:"Nunca parei pra pensar nisso", value:"q_conversas_4"}
+    ]},
+  { type:"question", id:"q_tempo", title:"Quando foi a última vez que vocês tiveram um momento só dos dois, sem celular ou distrações?",
+    options:[
+      {emoji:"📅", text:"Essa semana", value:"q_tempo_1"},
+      {emoji:"🗓️", text:"Esse mês", value:"q_tempo_2"},
+      {emoji:"😕", text:"Não lembro bem", value:"q_tempo_3"},
+      {emoji:"⏳", text:"Já faz bastante tempo", value:"q_tempo_4"}
+    ]},
+  { type:"question", id:"q_conflito", title:"Como vocês costumam lidar com pequenos desentendimentos?",
+    options:[
+      {emoji:"🗣️", text:"Conversamos e resolvemos rápido", value:"q_conflito_1"},
+      {emoji:"🤐", text:"Um de nós guarda a mágoa em silêncio", value:"q_conflito_2"},
+      {emoji:"🔁", text:"Os mesmos assuntos voltam sempre, sem solução", value:"q_conflito_3"},
+      {emoji:"😶", text:"Evitamos o assunto pra não criar atrito", value:"q_conflito_4"}
+    ]},
+  { type:"question", id:"q_oracao", title:"Vocês costumam orar juntos como casal?",
+    options:[
+      {emoji:"🙏", text:"Sim, é um hábito nosso", value:"q_oracao_1"},
+      {emoji:"🌱", text:"Às vezes — gostaria que fosse mais", value:"q_oracao_2"},
+      {emoji:"😣", text:"Quase nunca", value:"q_oracao_3"},
+      {emoji:"❓", text:"Nunca paramos pra fazer isso", value:"q_oracao_4"}
+    ]},
+  { type:"question", id:"q_futuro", title:"Se nada mudar, como você imagina seu casamento daqui a 5 anos?",
+    sub:"Seja sincera — isso fica só entre você e o seu diagnóstico.",
+    options:[
+      {emoji:"😟", text:"Tenho medo de virarmos só “companheiros de casa”", value:"q_futuro_1"},
+      {emoji:"💭", text:"Receio que essa distância vire algo maior", value:"q_futuro_2"},
+      {emoji:"😌", text:"Não tenho medo, mas sei que pode ser muito melhor", value:"q_futuro_3"},
+      {emoji:"🙏", text:"Quero ter certeza de que estamos investindo no que importa", value:"q_futuro_4"}
+    ]},
+  { type:"question", id:"q_desejo", title:"O que você mais gostaria de sentir no seu casamento hoje?",
+    options:[
+      {emoji:"💬", text:"Conversas mais profundas e verdadeiras", value:"conversas"},
+      {emoji:"🤍", text:"Mais intimidade e proximidade emocional", value:"intimidade"},
+      {emoji:"⏳", text:"Tempo de qualidade, sem pressa", value:"tempo"},
+      {emoji:"🙏", text:"Uma conexão espiritual mais forte como casal", value:"espiritual"}
+    ]},
+  { type:"verse", id:"proof2",
+    text:"Pesquisas sobre casais mostram algo simples: relacionamentos que praticam gratidão e oram juntos relatam mais satisfação conjugal. E a Palavra confirma:",
+    verse:"“Porque onde dois ou três estão reunidos em meu nome, aí estou eu no meio deles.”",
+    ref:"Mateus 18:20 (NVI)",
+    after:"Pequenos hábitos diários — não grandes mudanças — são o que reconstroem a conexão." },
+  { type:"promise", id:"promise" },
+  { type:"question", id:"q_compromisso", title:"Você estaria disposta a dedicar de 5 a 10 minutos por dia para reconectar com seu cônjuge?",
+    options:[
+      {emoji:"🙌", text:"Sim, quero começar agora", value:"sim_agora"},
+      {emoji:"🤍", text:"Sim, mas quero entender como funciona primeiro", value:"sim_entender"}
+    ]},
+  { type:"loading", id:"loading" },
+  { type:"result", id:"result" },
+  { type:"offer", id:"offer" }
+];
+
+function totalQuestionSteps(){
+  return SCREENS.filter(s=>["question","proof","verse","promise"].includes(s.type)).length;
+}
+
+function currentProgress(){
+  const denom = totalQuestionSteps() + 2; // + loading/result buffer
+  let countable = 0;
+  for(let i=0;i<=state.step;i++){
+    if(["question","proof","verse","promise","loading"].includes(SCREENS[i].type)) countable++;
+  }
+  return Math.min(100, Math.round((countable/denom)*100));
+}
+
+function render(){
+  const app = document.getElementById("app");
+  const screen = SCREENS[state.step];
+  const showBack = state.step > 0 && !["loading","result","offer"].includes(screen.type);
+  const showTop = !["result","offer"].includes(screen.type);
+
+  let topHtml = "";
+  if(showTop){
+    topHtml = `
+      <div class="topbar">
+        <div class="topbar-row">
+          <button class="back-btn ${showBack?'show':''}" onclick="goBack()">←</button>
+          <div class="progress-track"><div class="progress-fill" style="width:${currentProgress()}%"></div></div>
+        </div>
+        <div class="brand-mark">✝ Reconecte</div>
+      </div>`;
+  }
+
+  app.innerHTML = topHtml + `<div class="screen-wrap" id="screenWrap"></div>`;
+  const wrap = document.getElementById("screenWrap");
+  wrap.appendChild(renderScreen(screen));
+  window.scrollTo(0,0);
+}
+
+function renderScreen(screen){
+  const div = document.createElement("div");
+  div.className = "screen";
+
+  if(screen.type === "intro"){
+    div.innerHTML = `
+      <div class="kicker">💛 Teste gratuito · 2 minutos</div>
+      <div class="intro-art"><img src="quiz-casal.jpg" alt="Casal reconectando"></div>
+      <h1 class="q-title" style="font-size:27px;">Descubra o Nível de Conexão do Seu Casamento</h1>
+      <p class="q-sub">Um diagnóstico rápido, com base em princípios bíblicos, para identificar o que está pausando a proximidade com seu cônjuge — e um caminho simples para reconectar em poucos minutos por dia.</p>
+      <div class="intro-list">
+        <div class="intro-list-item"><span class="chk">✓</span> Leva menos de 2 minutos</div>
+        <div class="intro-list-item"><span class="chk">✓</span> Resultado personalizado pra sua realidade</div>
+        <div class="intro-list-item"><span class="chk">✓</span> Sem terapia cara, sem grandes mudanças de rotina</div>
+      </div>
+      <button class="cta-btn" onclick="goNext()">Começar o Diagnóstico →</button>
+      <div class="micro-trust">100% gratuito · Suas respostas são confidenciais</div>
+    `;
+    return div;
+  }
+
+  if(screen.type === "question"){
+    const selected = state.answers[screen.id];
+    div.innerHTML = `
+      <h2 class="q-title">${screen.title}</h2>
+      ${screen.sub ? `<p class="q-sub">${screen.sub}</p>` : `<div style="margin-bottom:18px;"></div>`}
+      <div class="options" id="optsWrap">
+        ${screen.options.map(o=>`
+          <div class="option ${selected===o.value?'selected':''}" data-value="${o.value}">
+            <span class="opt-emoji">${o.emoji}</span><span>${o.text}</span>
+          </div>`).join("")}
+      </div>
+    `;
+    div.querySelectorAll(".option").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        state.answers[screen.id] = el.getAttribute("data-value");
+        setTimeout(goNext, 220);
+        div.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));
+        el.classList.add("selected");
+      });
+    });
+    return div;
+  }
+
+  if(screen.type === "proof"){
+    div.innerHTML = `
+      <div class="kicker">📊 Você não está sozinha</div>
+      <div class="proof-card">
+        <div class="proof-stat">${screen.stat}</div>
+        <div class="proof-text">${screen.text}</div>
+      </div>
+      <button class="cta-btn" onclick="goNext()">Continuar</button>
+    `;
+    return div;
+  }
+
+  if(screen.type === "verse"){
+    div.innerHTML = `
+      <div class="kicker">🙏 Existe um caminho</div>
+      <p class="q-sub" style="margin-bottom:14px;">${screen.text}</p>
+      <div class="verse-card">
+        <div class="verse-text">${screen.verse}</div>
+        <div class="verse-ref">${screen.ref}</div>
+      </div>
+      <p class="q-sub" style="margin-top:14px;">${screen.after}</p>
+      <button class="cta-btn" onclick="goNext()">Continuar</button>
+    `;
+    return div;
+  }
+
+  if(screen.type === "promise"){
+    div.innerHTML = `
+      <div class="kicker">✨ A boa notícia</div>
+      <h2 class="q-title">Você não precisa de grandes mudanças — só de um pequeno hábito diário, no lugar certo.</h2>
+      <p class="q-sub">Com base nas suas respostas, vamos montar um diagnóstico personalizado e te mostrar exatamente por onde começar.</p>
+      <button class="cta-btn" onclick="goNext()">Quero ver meu diagnóstico</button>
+    `;
+    return div;
+  }
+
+  if(screen.type === "loading"){
+    setTimeout(()=>runLoading(div), 50);
+    div.innerHTML = `
+      <div class="loading-wrap">
+        <div class="loading-ring" id="loadRing">
+          <div class="loading-ring-inner" id="loadPct">0%</div>
+        </div>
+        <h2 class="q-title" style="font-size:21px;margin-bottom:8px;">Calculando seu Diagnóstico de Conexão...</h2>
+        <div class="loading-status" id="loadStatus">Analisando suas respostas...</div>
+      </div>
+    `;
+    return div;
+  }
+
+  if(screen.type === "result") return renderResult(div);
+  if(screen.type === "offer") return renderOffer(div);
+
+  return div;
+}
+
+let nameAsked = false;
+function runLoading(div){
+  const ring = document.getElementById("loadRing");
+  const pct = document.getElementById("loadPct");
+  const status = document.getElementById("loadStatus");
+  const messages = [
+    "Analisando suas respostas...",
+    "Comparando com padrões de casais cristãos...",
+    "Identificando pontos de atenção...",
+    "Montando seu plano personalizado..."
+  ];
+  let p = 0;
+  const interval = setInterval(()=>{
+    p += 2;
+    if(p > 100) p = 100;
+    if(ring) ring.style.setProperty("--p", p+"%");
+    if(pct) pct.textContent = p+"%";
+    if(status) status.textContent = messages[Math.min(messages.length-1, Math.floor(p/26))];
+
+    if(p === 56 && !nameAsked){
+      nameAsked = true;
+      clearInterval(interval);
+      showNamePrompt(div, ()=>runLoading2(div, p));
+      return;
+    }
+    if(p >= 100){
+      clearInterval(interval);
+      setTimeout(goNext, 500);
+    }
+  }, 45);
+}
+
+function runLoading2(div, startP){
+  const ring = document.getElementById("loadRing");
+  const pct = document.getElementById("loadPct");
+  const status = document.getElementById("loadStatus");
+  const messages = ["Quase lá...", "Finalizando seu plano de reconexão..."];
+  let p = startP;
+  const interval = setInterval(()=>{
+    p += 2;
+    if(p > 100) p = 100;
+    if(ring) ring.style.setProperty("--p", p+"%");
+    if(pct) pct.textContent = p+"%";
+    if(status) status.textContent = messages[p < 85 ? 0 : 1];
+    if(p >= 100){
+      clearInterval(interval);
+      setTimeout(goNext, 500);
+    }
+  }, 45);
+}
+
+function showNamePrompt(div, onDone){
+  div.innerHTML = `
+    <div class="kicker">💛 Só mais um detalhe</div>
+    <h2 class="q-title">Qual é o seu primeiro nome?</h2>
+    <p class="q-sub">Para personalizarmos o seu diagnóstico.</p>
+    <div class="text-input-wrap">
+      <input id="nameInput" type="text" placeholder="Digite seu primeiro nome" maxlength="30" autocomplete="given-name">
+    </div>
+    <button class="cta-btn" id="nameBtn" disabled onclick="submitName()">Continuar</button>
+  `;
+  const input = document.getElementById("nameInput");
+  const btn = document.getElementById("nameBtn");
+  input.addEventListener("input", ()=>{ btn.disabled = input.value.trim().length === 0; });
+  input.focus();
+  window._onNameDone = onDone;
+}
+
+function submitName(){
+  const input = document.getElementById("nameInput");
+  state.name = input.value.trim() || "";
+  const div = document.querySelector(".screen");
+  div.innerHTML = `
+    <div class="loading-wrap">
+      <div class="loading-ring" id="loadRing" style="--p:56%">
+        <div class="loading-ring-inner" id="loadPct">56%</div>
+      </div>
+      <h2 class="q-title" style="font-size:21px;margin-bottom:8px;">Calculando seu Diagnóstico de Conexão...</h2>
+      <div class="loading-status" id="loadStatus">Quase lá...</div>
+    </div>
+  `;
+  if(window._onNameDone) window._onNameDone();
+}
+
+function renderResult(div){
+  const level = scoreLevel();
+  const greeting = state.name ? `${state.name}, ` : "";
+  div.innerHTML = `
+    <div class="kicker">✅ Diagnóstico pronto</div>
+    <h2 class="q-title">${greeting}seu nível de conexão hoje é:</h2>
+    <div class="result-badge">${level.tag}</div>
+    <p class="q-sub">${level.desc}</p>
+
+    <div class="chart-card">
+      <div class="chart-row">
+        <div class="chart-label"><span>Comunicação profunda</span></div>
+        <div class="chart-bars"><div class="bar-track"><div class="bar-fill now" id="bar1now"></div></div></div>
+        <div class="chart-bars" style="margin-top:6px;"><div class="bar-track"><div class="bar-fill future" id="bar1fut"></div></div></div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-label"><span>Tempo de qualidade</span></div>
+        <div class="chart-bars"><div class="bar-track"><div class="bar-fill now" id="bar2now"></div></div></div>
+        <div class="chart-bars" style="margin-top:6px;"><div class="bar-track"><div class="bar-fill future" id="bar2fut"></div></div></div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-label"><span>Constância de hábitos</span></div>
+        <div class="chart-bars"><div class="bar-track"><div class="bar-fill now" id="bar3now"></div></div></div>
+        <div class="chart-bars" style="margin-top:6px;"><div class="bar-track"><div class="bar-fill future" id="bar3fut"></div></div></div>
+      </div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#D9B7A8;"></span>Hoje</span>
+        <span><span class="legend-dot" style="background:var(--accent);"></span>Em 30 dias com o método</span>
+      </div>
+    </div>
+
+    <p class="q-sub">A diferença não está em mudar de pessoa — está em praticar pequenos hábitos certos, todos os dias, com base bíblica.</p>
+    <button class="cta-btn" onclick="goNext()">Ver meu Plano de Reconexão →</button>
+  `;
+  setTimeout(()=>{
+    const setBar = (id, val) => { const el = document.getElementById(id); if(el) el.style.width = val+"%"; };
+    setBar("bar1now", 35); setBar("bar1fut", 88);
+    setBar("bar2now", 30); setBar("bar2fut", 85);
+    setBar("bar3now", 25); setBar("bar3fut", 90);
+  }, 150);
+  return div;
+}
+
+function renderOffer(div){
+  div.innerHTML = `
+    <div class="screen-wrap" style="padding:0;">
+    <div class="offer-hero">
+      <div class="kicker">🎯 Seu plano está pronto</div>
+      <h1>O Método Reconecte para reaproximar você do seu cônjuge — em poucos minutos por dia</h1>
+      <p>Sem terapia cara. Sem grandes mudanças de rotina. Só um caminho simples, fundamentado em princípios bíblicos, pra reconstruir a intimidade do seu casamento.</p>
+    </div>
+
+    <div class="compare-list">
+      <div class="compare-item before"><span class="ico">✕</span><span>Rotina sobrecarregada e conversas que não saem do "piloto automático"</span></div>
+      <div class="compare-item before"><span class="ico">✕</span><span>Mágoas pequenas que se acumulam e nunca são resolvidas de verdade</span></div>
+      <div class="compare-item after"><span class="ico">✓</span><span>7 capítulos curtos (~5 min cada) com leitura + reflexão + desafio prático</span></div>
+      <div class="compare-item after"><span class="ico">✓</span><span>Um hábito diário simples, no ritmo da sua rotina real</span></div>
+      <div class="compare-item after"><span class="ico">✓</span><span>Base bíblica em cada passo — não é autoajuda genérica</span></div>
+    </div>
+
+    <h2 class="section-title">O que você recebe hoje</h2>
+    <div class="product-card">
+      <h3>📖 E-book Reconecte — O Guia Para Resgatar a Conexão do Seu Casamento</h3>
+      <p>7 capítulos curtos, leitura de ~5 minutos cada, com reflexão e desafio prático em cada um. Da comunicação ao perdão, da intimidade à oração em casal.</p>
+    </div>
+    <div class="product-card">
+      <span class="bonus-tag">BÔNUS SEM CUSTO EXTRA</span>
+      <h3>📱 App Reconecte — Treino Diário</h3>
+      <p>Versão gamificada das mesmas lições, estilo trilha de hábitos: 21 lições curtas, sequência diária e progresso salvo no seu celular — pra transformar leitura em hábito.</p>
+    </div>
+
+    <div class="price-card">
+      <div class="price-compare">Uma sessão de terapia de casal custa, em média, R$150 a R$300</div>
+      <div class="price-now">R$ 19,90</div>
+      <div class="price-sub">pagamento único · acesso imediato</div>
+    </div>
+
+    <div class="guarantee-row"><span class="ico">🛡️</span><span>Garantia de 7 dias — não fez sentido pra você, devolvemos seu dinheiro.</span></div>
+
+    <button class="cta-btn" onclick="window.location.href='https://app-reconecte.vercel.app/'">Quero Reconectar Agora →</button>
+
+    <h2 class="section-title">O que mulheres como você sentem ao aplicar princípios assim</h2>
+    <div class="testi-card"><div class="testi-text">"O que mais me marcou foi perceber que a gente não precisava de uma grande virada — só de voltar a se ouvir todos os dias."</div><div class="testi-name">Relato inspirado em práticas reais de reconexão conjugal</div></div>
+    <div class="testi-card"><div class="testi-text">"Orar junto de novo, mesmo que por 2 minutos, mudou o clima de casa."</div><div class="testi-name">Relato inspirado em práticas reais de reconexão conjugal</div></div>
+
+    <div class="about-box">
+      <strong>Sobre o Reconecte:</strong> nasceu da convicção de que casamentos não se fortalecem em grandes decisões únicas, mas em pequenos hábitos diários, vividos com fé e intencionalidade — um passo por dia, não uma reforma de uma vez só.
+    </div>
+
+    <h2 class="section-title">Perguntas frequentes</h2>
+    <div id="faqList"></div>
+
+    <div class="sticky-cta">
+      <button class="cta-btn" onclick="window.location.href='https://app-reconecte.vercel.app/'">Quero Reconectar Agora — R$ 19,90</button>
+    </div>
+    <div class="footer-note">© 2026 Reconecte · Conteúdo de apoio espiritual e relacional — não substitui aconselhamento profissional quando necessário.</div>
+    </div>
+  `;
+
+  const faqs = [
+    {q:"Preciso convencer meu marido a participar?", a:"Não. O Reconecte começa com você — muitas mulheres relatam que a mudança na própria atitude já desperta o interesse do cônjuge com o tempo."},
+    {q:"Funciona mesmo sem terapia de casal?", a:"O Reconecte é um material de apoio espiritual e relacional, não terapia. Para casos que exigem acompanhamento profissional, recomendamos buscar um terapeuta ou conselheiro cristão qualificado."},
+    {q:"Como recebo o material?", a:"Acesso imediato após a confirmação: o e-book em PDF e o acesso ao app bônus chegam no seu e-mail e podem ser abertos direto no celular."},
+    {q:"E se eu não gostar?", a:"Você tem 7 dias de garantia incondicional. Se sentir que não fez sentido pra você, é só pedir o reembolso."}
+  ];
+  const faqList = div.querySelector("#faqList");
+  faqs.forEach((f,i)=>{
+    const item = document.createElement("div");
+    item.className = "faq-item";
+    item.innerHTML = `<div class="faq-q">${f.q}<span class="faq-arrow">▾</span></div><div class="faq-a">${f.a}</div>`;
+    item.querySelector(".faq-q").addEventListener("click", ()=> item.classList.toggle("open"));
+    faqList.appendChild(item);
+  });
+
+  return div;
+}
+
+function goNext(){
+  if(state.step < SCREENS.length - 1){
+    state.step++;
+    render();
+  }
+}
+function goBack(){
+  if(state.step > 0){
+    state.step--;
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
