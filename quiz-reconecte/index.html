@@ -4,6 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Reconecte — Diagnóstico de Conexão do Casamento</title>
+
+<!-- Verificação de domínio do Meta (Gerenciador de Eventos > Domínios) -->
+<meta name="facebook-domain-verification" content="dc52v9ua056ej6fqwvevz6sn1jd8sj" />
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '511690350149140');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=511690350149140&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <link rel="icon" type="image/png" href="favicon-coracao.png">
 <link rel="apple-touch-icon" href="favicon-coracao.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -169,6 +190,23 @@ const state = {
   name: ""
 };
 
+/* ---- Eventos do Pixel do Meta ---- */
+let quizCompleteFired = false;
+function trackQuizCompleted(){
+  if(quizCompleteFired) return;
+  quizCompleteFired = true;
+  if(typeof fbq === "function"){
+    fbq('track', 'ViewContent', {content_name:'Quiz Reconecte - Resultado', content_category:'Diagnostico de Casamento'});
+    fbq('trackCustom', 'QuizCompleto');
+  }
+}
+function trackCheckoutClick(url){
+  if(typeof fbq === "function"){
+    fbq('track', 'InitiateCheckout', {content_name:'Reconecte - Guia + App', value:19.90, currency:'BRL'});
+  }
+  window.location.href = url;
+}
+
 function scoreLevel(){
   // soma sinais de distanciamento nas respostas de diagnóstico (Q1..Q4) e ferida (Q5)
   const distant = ["q_conversas_2","q_conversas_3","q_tempo_3","q_tempo_4",
@@ -312,7 +350,7 @@ function renderScreen(screen){
         <div class="intro-list-item"><span class="chk">✓</span> Sem terapia cara, sem grandes mudanças de rotina</div>
       </div>
       <button class="cta-btn" onclick="goNext()">Começar o Diagnóstico →</button>
-      <div class="micro-trust">100% gratuito · Suas respostas são confidenciais</div>
+      <div class="micro-trust">100% gratuito · Suas respostas são confidenciais · <a href="privacidade.html" style="color:var(--muted);">Política de Privacidade</a></div>
     `;
     return div;
   }
@@ -481,6 +519,7 @@ function submitName(){
 }
 
 function renderResult(div){
+  trackQuizCompleted();
   const level = scoreLevel();
   const greeting = state.name ? `${state.name}, ` : "";
   div.innerHTML = `
@@ -559,7 +598,7 @@ function renderOffer(div){
 
     <div class="guarantee-row"><span class="ico">🛡️</span><span>Garantia de 7 dias — não fez sentido pra você, devolvemos seu dinheiro.</span></div>
 
-    <button class="cta-btn" onclick="window.location.href='https://chk.eduzz.com/E0DKZEKR91/'">Quero Reconectar Agora →</button>
+    <button class="cta-btn" onclick="trackCheckoutClick('https://chk.eduzz.com/E0DKZEKR91')">Quero Reconectar Agora →</button>
 
     <h2 class="section-title">O que mulheres como você sentem ao aplicar princípios assim</h2>
     <div class="testi-card"><div class="testi-text">"O que mais me marcou foi perceber que a gente não precisava de uma grande virada — só de voltar a se ouvir todos os dias."</div><div class="testi-name">Relato inspirado em práticas reais de reconexão conjugal</div></div>
@@ -573,9 +612,9 @@ function renderOffer(div){
     <div id="faqList"></div>
 
     <div class="sticky-cta">
-      <button class="cta-btn" onclick="window.location.href='https://chk.eduzz.com/E0DKZEKR91/'">Quero Reconectar Agora — R$ 19,90</button>
+      <button class="cta-btn" onclick="trackCheckoutClick('https://chk.eduzz.com/E0DKZEKR91')">Quero Reconectar Agora — R$ 19,90</button>
     </div>
-    <div class="footer-note">© 2026 Reconecte · Conteúdo de apoio espiritual e relacional — não substitui aconselhamento profissional quando necessário.</div>
+    <div class="footer-note">© 2026 Reconecte · Conteúdo de apoio espiritual e relacional — não substitui aconselhamento profissional quando necessário.<br><a href="privacidade.html" style="color:var(--muted);">Política de Privacidade</a></div>
     </div>
   `;
 
