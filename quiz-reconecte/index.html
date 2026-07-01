@@ -226,7 +226,18 @@ function trackQuizCompleted(){
 }
 function trackCheckoutClick(url){
   _sendEvent('InitiateCheckout', false, {content_name:'Reconecte - Guia + App', value:19.90, currency:'BRL'});
-  window.location.href = url;
+  // Repassa UTMs do quiz para o checkout (rastreia qual anúncio gerou a venda na Eduzz)
+  try {
+    var quizParams = new URLSearchParams(window.location.search);
+    var checkoutUrl = new URL(url);
+    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(function(k){
+      var v = quizParams.get(k);
+      if(v) checkoutUrl.searchParams.set(k, v);
+    });
+    window.location.href = checkoutUrl.toString();
+  } catch(e) {
+    window.location.href = url;
+  }
 }
 
 // PageView via CAPI — registra acesso inicial pelo servidor (bypass de ad blockers)
