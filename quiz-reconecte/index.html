@@ -229,6 +229,10 @@ function trackCheckoutClick(url){
   window.location.href = url;
 }
 
+// PageView via CAPI — registra acesso inicial pelo servidor (bypass de ad blockers)
+// O browser pixel já dispara PageView no <head>; este envia o mesmo evento via servidor
+_sendEvent('PageView', false, {});
+
 function scoreLevel(){
   // soma sinais de distanciamento nas respostas de diagnóstico (Q1..Q4) e ferida (Q5)
   const distant = ["q_conversas_2","q_conversas_3","q_tempo_3","q_tempo_4",
