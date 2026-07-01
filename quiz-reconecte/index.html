@@ -233,6 +233,17 @@ function trackCheckoutClick(url){
 // O browser pixel já dispara PageView no <head>; este envia o mesmo evento via servidor
 _sendEvent('PageView', false, {});
 
+/* ---- Rastreamento de etapas do quiz ---- */
+var _maxStepTracked = -1;
+function _trackStep(stepIdx, screenType){
+  // Só avança — ignora navegação para trás e telas com eventos próprios
+  if(stepIdx <= _maxStepTracked) return;
+  if(['result','offer'].includes(screenType)) return;
+  _maxStepTracked = stepIdx;
+  var label = 'E' + String(stepIdx + 1).padStart(2,'0') + '_' + screenType;
+  _sendEvent('QuizEtapa', true, {content_name: label, step: stepIdx + 1, screen_type: screenType});
+}
+
 function scoreLevel(){
   // soma sinais de distanciamento nas respostas de diagnóstico (Q1..Q4) e ferida (Q5)
   const distant = ["q_conversas_2","q_conversas_3","q_tempo_3","q_tempo_4",
@@ -339,6 +350,7 @@ function currentProgress(){
 function render(){
   const app = document.getElementById("app");
   const screen = SCREENS[state.step];
+  _trackStep(state.step, screen.type);
   const showBack = state.step > 0 && !["loading","result","offer"].includes(screen.type);
   const showTop = !["result","offer"].includes(screen.type);
 
