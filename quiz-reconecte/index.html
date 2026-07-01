@@ -190,20 +190,42 @@ const state = {
   name: ""
 };
 
-/* ---- Eventos do Pixel do Meta ---- */
+/* ---- Eventos: Pixel (browser) + CAPI (servidor) com deduplicação ---- */
+function _genEid(){
+  return 'e' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+}
+function _sendEvent(eventName, isCustom, customData){
+  var eid = _genEid();
+  // 1) Browser pixel — com eventID para Meta deduplicar com CAPI
+  if(typeof fbq === 'function'){
+    if(isCustom){
+      fbq('trackCustom', eventName, customData || {}, {eventID: eid});
+    } else {
+      fbq('track', eventName, customData || {}, {eventID: eid});
+    }
+  }
+  // 2) Conversions API (server-side) — bypass de ad blockers
+  fetch('/api/track', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      event_name: eventName,
+      event_id: eid,
+      event_source_url: window.location.href,
+      custom_data: customData || {}
+    })
+  }).catch(function(){/* falha silenciosa — pixel é backup */});
+}
+
 let quizCompleteFired = false;
 function trackQuizCompleted(){
   if(quizCompleteFired) return;
   quizCompleteFired = true;
-  if(typeof fbq === "function"){
-    fbq('track', 'ViewContent', {content_name:'Quiz Reconecte - Resultado', content_category:'Diagnostico de Casamento'});
-    fbq('trackCustom', 'QuizCompleto');
-  }
+  _sendEvent('ViewContent', false, {content_name:'Quiz Reconecte - Resultado', content_category:'Diagnostico de Casamento'});
+  _sendEvent('QuizCompleto', true, {});
 }
 function trackCheckoutClick(url){
-  if(typeof fbq === "function"){
-    fbq('track', 'InitiateCheckout', {content_name:'Reconecte - Guia + App', value:19.90, currency:'BRL'});
-  }
+  _sendEvent('InitiateCheckout', false, {content_name:'Reconecte - Guia + App', value:19.90, currency:'BRL'});
   window.location.href = url;
 }
 
